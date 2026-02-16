@@ -1,6 +1,7 @@
 package com.xyz.moviebooking.service;
 
 import com.xyz.moviebooking.dto.BookingRequest;
+import com.xyz.moviebooking.dto.BookingResponse;
 import com.xyz.moviebooking.entity.Show;
 import com.xyz.moviebooking.repository.BookingRepository;
 import com.xyz.moviebooking.repository.BookingSeatRepository;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.List;
 
+import static java.util.List.of;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 
@@ -32,7 +34,7 @@ public class BookingServiceTest {
 
         BookingRequest req = new BookingRequest();
         req.setShowId(999L);
-        req.setSeatIds(List.of(1L));
+        req.setSeatIds(of(1L));
         req.setCustomerName("A");
         req.setCustomerEmail("a@test.com");
 
@@ -55,21 +57,36 @@ public class BookingServiceTest {
         show.setShowTime(LocalDateTime.now().plusHours(2));
         Mockito.when(showRepo.findById(101L)).thenReturn(Optional.of(show));
 
-        Mockito.when(inventoryService.reserveSeats(eq(101L), anyList())).thenReturn(List.of());
+        com.xyz.moviebooking.entity.ShowSeat ss = new com.xyz.moviebooking.entity.ShowSeat();
+        ss.setId(1L);
+        ss.setShowId(101L);
+        ss.setSeatId(501L);
+        ss.setStatus(com.xyz.moviebooking.entity.SeatStatus.RESERVED);
+
+        Mockito.when(inventoryService.reserveSeats(eq(101L), anyList())).thenReturn(of(ss));
+        Mockito.doNothing().when(inventoryService).markBooked(anyList());
+
         Mockito.when(paymentGateway.charge(anyString(), anyDouble())).thenReturn(true);
 
-        Mockito.when(bookingRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        Mockito.when(bookingRepo.save(any())).thenAnswer(inv -> {
+            com.xyz.moviebooking.entity.Booking b = inv.getArgument(0);
+            if (b.getId() == null) b.setId("test-booking-1");
+            if (b.getCreatedAt() == null) b.setCreatedAt(java.time.LocalDateTime.now());
+            return b;
+        });
 
         BookingService service = new BookingService(showRepo, bookingRepo, bookingSeatRepo, inventoryService, paymentGateway);
 
         BookingRequest req = new BookingRequest();
         req.setShowId(101L);
-        req.setSeatIds(List.of(501L));
+        req.setSeatIds(of(501L));
         req.setCustomerName("Sebu");
         req.setCustomerEmail("sebu@test.com");
 
-        var resp = service.createBooking(req);
+        BookingResponse resp = service.createBooking(req);
+
         assertNotNull(resp.getBookingId());
         assertEquals("CONFIRMED", resp.getStatus());
     }
+
 }

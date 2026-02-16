@@ -55,7 +55,7 @@ public class BookingService {
         booking = bookingRepository.save(booking);
 
         try {
-            // Unique constraint prevents same showSeat being booked twice
+
             for (ShowSeat ss : reserved) {
                 BookingSeat bs = new BookingSeat();
                 bs.setBookingId(booking.getId());
@@ -82,7 +82,8 @@ public class BookingService {
 
         List<String> seats = reserved.stream()
                 .map(ss -> "seatId=" + ss.getSeatId())
-                .toList();
+                .collect(java.util.stream.Collectors.toList());
+
 
         return new BookingResponse(booking.getId(), booking.getStatus().name(), show.getId(), seats, booking.getTotalAmount());
     }
