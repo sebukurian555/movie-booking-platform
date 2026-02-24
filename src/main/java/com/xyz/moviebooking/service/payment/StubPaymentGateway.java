@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 public class StubPaymentGateway implements PaymentGateway {
     @Override
     public boolean charge(String bookingId, double amount) {
-        // Interview note: replace with real gateway + webhook callback + idempotency keys
         return true;
     }
 }
