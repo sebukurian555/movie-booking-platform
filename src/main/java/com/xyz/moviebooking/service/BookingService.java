@@ -92,4 +92,24 @@ public class BookingService {
         return bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Booking not found: " + bookingId));
     }
+
+    public BookingResponse getBookingResponse(String bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new NotFoundException("Booking not found: " + bookingId));
+
+        List<String> seats = bookingSeatRepository.findByBookingId(bookingId).stream()
+                .map(bs -> "showSeatId=" + bs.getShowSeatId())
+                .collect(java.util.stream.Collectors.toList());
+
+        return new BookingResponse(
+                booking.getId(),
+                booking.getStatus().name(),
+                booking.getShowId(),
+                seats,
+                booking.getTotalAmount()
+        );
+    }
+
+
+
 }

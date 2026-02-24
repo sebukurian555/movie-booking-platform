@@ -25,7 +25,9 @@ public class BookingController {
     }
 
     @GetMapping("/{bookingId}")
-    public Booking get(@PathVariable String bookingId) {
+    public Booking get(@PathVariable("bookingId") String bookingId) {
         return bookingService.getBooking(bookingId);
     }
+
 }
+
